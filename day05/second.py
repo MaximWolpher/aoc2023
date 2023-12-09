@@ -21,27 +21,33 @@ def parse_input(lines):
                 maps[map_name].append(values)
     return initial_seeds, maps
 
-        
-
 def main():
     initial_seeds, maps = parse_input(lines)
-    locations = []
+    
     end = "location"
     current = "seed"
-    for seed in initial_seeds:
-        while True:
-            if current == end:
-                locations.append(seed)
-                current = "seed"
-                break
-            map_name = [map_name for map_name in maps.keys() if map_name.startswith(current)][0]
-            current = map_name.split("-to-")[1]
-
-            for map_range in maps[map_name]:
-                if map_range["source_start"] <= seed <= map_range["source_end"]:
-                    seed = seed + map_range["difference"]
+    minima_search = []
+    min_location = float("inf")
+    for seed_start in range(0, len(initial_seeds), 2):
+        #Manual iterative approach to search for minima by changing gradually changing the step size
+        seed_range = range(initial_seeds[seed_start], initial_seeds[seed_start] + initial_seeds[seed_start + 1],1)
+        for seed in seed_range:
+            initial_seed = seed
+            while True:
+                if current == end:
+                    if seed < min_location:
+                        min_location = seed
+                        minima_search.append((initial_seed, seed))
+                    current = "seed"
                     break
-    return min(locations)
+                map_name = [map_name for map_name in maps.keys() if map_name.startswith(current)][0]
+                current = map_name.split("-to-")[1]
+
+                for map_range in maps[map_name]:
+                    if map_range["source_start"] <= seed <= map_range["source_end"]:
+                        seed = seed + map_range["difference"]
+                        break
+    return sorted(minima_search, key=lambda x: x[1])
 
 
 if __name__ == "__main__":
